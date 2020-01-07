@@ -5,9 +5,11 @@ from warpctc_pytorch import CTCLoss
 from models.conv import GatedConv
 from tqdm import tqdm
 from decoder import GreedyDecoder
+import numpy as np
 import tensorboardX as tensorboard
 import torch.nn.functional as F
 import os, json, random
+
 
 # 1. set random seed
 random.seed(2050)
