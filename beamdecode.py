@@ -5,35 +5,37 @@ from models.conv import GatedConv
 import torch.nn.functional as F
 from ctcdecode import CTCBeamDecoder
 
-alpha = 0.8
-beta = 0.3
-lm_path = "lm/zh_giga.no_cna_cmn.prune01244.klm"
-cutoff_top_n = 40
-cutoff_prob = 1.0
-beam_width = 32
-num_processes = 4
-blank_index = 0
+def model_setup(pretrained_path = "pretrained/gated-conv.pth",
+				alpha = 0.8,
+				beta = 0.3,
+				lm_path = "lm/zh_giga.no_cna_cmn.prune01244.klm",
+				cutoff_top_n = 40,
+				cutoff_prob = 1.0,
+				beam_width = 32,
+				num_processes = 4,
+				blank_index = 0):
 
-model = GatedConv.load("pretrained/gated-conv.pth")
-model.eval()
+	model = GatedConv.load(pretrained_path)
+	model.eval()
 
-decoder = CTCBeamDecoder(
-    model.vocabulary,
-    lm_path,
-    alpha,
-    beta,
-    cutoff_top_n,
-    cutoff_prob,
-    beam_width,
-    num_processes,
-    blank_index,
-)
+	decoder = CTCBeamDecoder(
+		model.vocabulary,
+		lm_path,
+		alpha,
+		beta,
+		cutoff_top_n,
+		cutoff_prob,
+		beam_width,
+		num_processes,
+		blank_index,
+	)
+	return model, decoder
 
 def translate(vocab, out, out_len):
     return "".join([vocab[x] for x in out[0:out_len]])
 
 
-def predict(f):
+def predict(f, model, decoder):
     wav = feature.load_audio(f)
     spec = feature.spectrogram(wav)
     spec.unsqueeze_(0)

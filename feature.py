@@ -28,7 +28,6 @@ def load_audio(wav_path, normalize=True):  # -> numpy array
 	else:
 		return wav
 
-
 def spectrogram(wav, normalize=True):
 # librosa
 	D = librosa.stft(
