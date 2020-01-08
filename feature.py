@@ -11,16 +11,17 @@ win_length = n_fft
 hop_length = int(sample_rate * window_stride)
 window = "hamming"
 
-
 def load_audio(wav_path, normalize=True):  # -> numpy array
 	if ".wav" in wav_path:
-		with wave.open(wav_path) as wav:
-			wav = np.frombuffer(wav.readframes(wav.getnframes()), dtype="int16")
+		with wave.open(wav_path) as wf:
+			wav = np.frombuffer(wf.readframes(wf.getnframes()), dtype="int16")
 			wav = wav.astype("float")
 	elif ".bin" in wav_path:
-		wav = np.fromfile(wav_path, dtype="int16").astype("float")
+		wav = np.fromfile(wav_path, dtype="int16")
+		wav = wav.astype("float")
 	else:
 		print("Error: ", wav_path)
+		raise ValueError("Error: "+wav_path)
 		
 	if normalize:
 		return (wav - wav.mean()) / wav.std()

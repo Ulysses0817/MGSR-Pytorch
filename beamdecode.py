@@ -1,4 +1,4 @@
-import _init_path
+# import _init_path
 import torch
 import feature
 from models.conv import GatedConv
@@ -29,7 +29,6 @@ decoder = CTCBeamDecoder(
     blank_index,
 )
 
-
 def translate(vocab, out, out_len):
     return "".join([vocab[x] for x in out[0:out_len]])
 
@@ -43,6 +42,6 @@ def predict(f):
         y = F.softmax(y, 1)
     y_len = torch.tensor([y.size(-1)])
     y = y.permute(0, 2, 1)  # B * T * V
-    print("decoding")
+    # print("decoding")
     out, score, offset, out_len = decoder.decode(y, y_len)
     return translate(model.vocabulary, out[0][0], out_len[0][0])
