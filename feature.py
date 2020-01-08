@@ -13,24 +13,35 @@ window = "hamming"
 
 
 def load_audio(wav_path, normalize=True):  # -> numpy array
-    with wave.open(wav_path) as wav:
-        wav = np.frombuffer(wav.readframes(wav.getnframes()), dtype="int16")
-        wav = wav.astype("float")
-    if normalize:
-        wav = (wav - wav.mean()) / wav.std()
-    return wav
+	if ".wav" in wav_path:
+		with wave.open(wav_path) as wav:
+			wav = np.frombuffer(wav.readframes(wav.getnframes()), dtype="int16")
+			wav = wav.astype("float")
+	elif ".bin" in wav_path:
+		wav = np.fromfile(wav_path, dtype="int16").astype("float")
+	else:
+		print("Error: ", wav_path)
+		
+	if normalize:
+		return (wav - wav.mean()) / wav.std()
+	else:
+		return wav
 
 
 def spectrogram(wav, normalize=True):
-    D = librosa.stft(
-        wav, n_fft=n_fft, hop_length=hop_length, win_length=win_length, window=window
-    )
+# librosa
+	D = librosa.stft(
+		wav, n_fft=n_fft, hop_length=hop_length, win_length=win_length, window=window
+	)
 
-    spec, phase = librosa.magphase(D)
-    spec = np.log1p(spec)
-    spec = torch.FloatTensor(spec)
+	spec, phase = librosa.magphase(D)
+	spec = np.log1p(spec)
+	
+# handled
+	
+	spec = torch.FloatTensor(spec)
 
-    if normalize:
-        spec = (spec - spec.mean()) / spec.std()
+	if normalize:
+		spec = (spec - spec.mean()) / spec.std()
 
-    return spec
+	return spec
