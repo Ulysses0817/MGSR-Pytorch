@@ -121,12 +121,13 @@ def train(
 			# loss
 			epoch_loss += loss.item()
 			writer.add_scalar("loss/step", loss.item(), gstep)
+			writer.add_scalar("cer_tr/step", /(batch_size*(i+1)), gstep)
 			gstep += 1
 			# display
 			if i % 5 == 0:
 				print(
 					"[{}/{}][{}/{}]\tLoss = {:.4f},\tCer = {:.4f}".format(
-						epoch + 1, epochs, i, int(batchs), loss.item(), cer_tr/batch_size
+						epoch + 1, epochs, i, int(batchs), loss.item(), cer_tr/(batch_size*(i+1))
 					),
 					flush=True
 				)
