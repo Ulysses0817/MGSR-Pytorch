@@ -70,7 +70,7 @@ def train(
 	else:
 		print("choose adamwr.")
 		optimizer = AdamW(model.parameters(), lr=learning_rate, weight_decay=1e-4)
-		if config.fp16 is not None:
+		if config.fp16:
 			# Allow Amp to perform casts as required by the opt_level
 			model, optimizer = amp.initialize(model, optimizer, opt_level=config.fp16)
 			scheduler = CyclicLRWithRestarts(optimizer, config.batch_size, epoch_size=len(train_dataloader.idx), restart_period=4, t_mult=1.2, 
