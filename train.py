@@ -73,10 +73,10 @@ def train(
 		if config.fp16:
 			# Allow Amp to perform casts as required by the opt_level
 			model, optimizer = amp.initialize(model, optimizer, opt_level=config.fp16)
-			scheduler = CyclicLRWithRestarts(optimizer, config.batch_size, epoch_size=len(train_dataset.idx), restart_period=4, t_mult=1.2, 
+			scheduler = CyclicLRWithRestarts(optimizer, config.batch_size, epoch_size=len(train_dataset.idx), restart_period=5, t_mult=1.2, 
 										  eta_on_restart_cb=ReduceMaxLROnRestart(ratio=config.wr_ratio), policy="cosine")
 		else:
-			scheduler = CyclicLRWithRestarts(optimizer, batch_size, epoch_size=len(train_dataset.idx), restart_period=4, t_mult=1.2, 
+			scheduler = CyclicLRWithRestarts(optimizer, batch_size, epoch_size=len(train_dataset.idx), restart_period=5, t_mult=1.2, 
 										  eta_on_restart_cb=ReduceMaxLROnRestart(ratio=config.wr_ratio), policy="cosine")
 	
 	ctcloss = CTCLoss(size_average=True)
@@ -101,7 +101,7 @@ def train(
 			loss = ctcloss(outs, y, out_lens, y_lens)
 			optimizer.zero_grad()
 			loss.backward()
-			nn.utils.clip_grad_norm_(model.parameters(), max_grad_norm)
+			if config.optim == "sgd": nn.utils.clip_grad_norm_(model.parameters(), max_grad_norm)
 			optimizer.step()
 			if config.optim == "adamwr": scheduler.batch_step()
 			
@@ -161,7 +161,7 @@ def eval(model, dataloader):
 	with torch.no_grad():
 		for i, (x, y, x_lens, y_lens) in tqdm(enumerate(dataloader)):
 			x = x.to(device)
-			outs, out_lens = model(x, x_lens)
+			out, out_lens = model(x, x_lens)
 			loss = ctcloss(out.transpose(0, 1).transpose(0, 2), y, out_lens, y_lens)
 			epoch_loss += loss.item()
 			outs = F.softmax(outs, 1)
@@ -212,7 +212,7 @@ if __name__ == "__main__":
 		train_index_path=args.train_index_path,
 		dev_index_path=args.dev_index_path,
 		labels_path=args.labels_path,
-		learning_rate=args.learning_rate,
+		learning_rate=float(args.learning_rate),
 		momentum=args.momentum,
 		max_grad_norm=args.max_grad_norm,
 		weight_decay=args.weight_decay,
