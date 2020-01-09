@@ -202,7 +202,7 @@ if __name__ == "__main__":
 	
 	with open("./dataset/labels.json") as f:
 		vocabulary = json.load(f)
-		vocabulary = "".join(vocabulary)
+		# vocabulary = "".join(vocabulary)
 	model = GatedConv(vocabulary)
 	model.to(device)
 	train(model, 	
