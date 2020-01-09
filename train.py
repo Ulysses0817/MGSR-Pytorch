@@ -161,8 +161,8 @@ def eval(model, dataloader):
 	with torch.no_grad():
 		for i, (x, y, x_lens, y_lens) in tqdm(enumerate(dataloader)):
 			x = x.to(device)
-			out, out_lens = model(x, x_lens)
-			loss = ctcloss(out.transpose(0, 1).transpose(0, 2), y, out_lens, y_lens)
+			outs, out_lens = model(x, x_lens)
+			loss = ctcloss(outs.transpose(0, 1).transpose(0, 2), y, out_lens, y_lens)
 			epoch_loss += loss.item()
 			outs = F.softmax(outs, 1)
 			outs = outs.transpose(1, 2)
