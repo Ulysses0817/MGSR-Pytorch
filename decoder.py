@@ -18,6 +18,7 @@ class Decoder(object):
         # e.g. labels = "_'ABCDEFGHIJKLMNOPQRSTUVWXYZ#"
         self.labels = labels
         self.int_to_char = dict([(i, c) for (i, c) in enumerate(labels)])
+        print("length of int_to_char is ", len(self.int_to_char))
         self.blank_index = blank_index
         """
         space_index = len(labels)  # To prevent errors in decode, we add an out of bounds index for the space
@@ -99,7 +100,8 @@ class GreedyDecoder(Decoder):
         string = ""
         offsets = []
         for i in range(size):
-            char = self.int_to_char[sequence[i].item()]
+            index = sequence[i].item()
+            char = self.int_to_char[index]
             if char != self.int_to_char[self.blank_index]:
                 # if this char is a repetition and remove_repetitions=true, then skip
                 if (

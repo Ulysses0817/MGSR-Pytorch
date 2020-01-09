@@ -97,7 +97,8 @@ def train(
 		for i, (x, y, x_lens, y_lens) in enumerate(train_dataloader):
 			x = x.to(device)
 			out, out_lens = model(x, x_lens)
-			loss = ctcloss(out.transpose(0, 1).transpose(0, 2), y, out_lens, y_lens)
+			outs = out.transpose(0, 1).transpose(0, 2)
+			loss = ctcloss(outs, y, out_lens, y_lens)
 			optimizer.zero_grad()
 			loss.backward()
 			nn.utils.clip_grad_norm_(model.parameters(), max_grad_norm)
@@ -105,7 +106,8 @@ def train(
 			if config.optim == "adamwr": scheduler.batch_step()
 			
 			# cer
-			outs = F.softmax(out, 1).transpose(1, 2)
+			outs = F.softmax(out, 1)
+			outs = outs.transpose(1, 2)
 			ys = []
 			offset = 0
 			for y_len in y_lens:
