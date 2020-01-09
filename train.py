@@ -117,7 +117,7 @@ def train(
 			y_strings = decoder.convert_to_strings(ys)
 			for pred, truth in zip(out_strings, y_strings):
 				trans, ref = pred[0], truth[0]
-				cer_tr += decoder.cer_tr(trans, ref) / float(len(ref))
+				cer_tr += decoder.cer(trans, ref) / float(len(ref))
 			# loss
 			epoch_loss += loss.item()
 			writer.add_scalar("loss/step", loss.item(), gstep)
