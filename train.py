@@ -80,6 +80,7 @@ def train(
 										  eta_on_restart_cb=ReduceMaxLROnRestart(ratio=config.wr_ratio), policy="cosine")
 	
 	ctcloss = CTCLoss(size_average=True)
+	decoder = GreedyDecoder(train_dataloader.dataset.labels_str)
 	# lr_sched = torch.optim.lr_scheduler.ExponentialLR(optimizer, 0.985)
 	writer = tensorboard.SummaryWriter('./logs/')
 	gstep = 0
