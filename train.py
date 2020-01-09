@@ -104,7 +104,7 @@ def train(
 			if config.optim == "adamwr": scheduler.batch_step()
 			
 			# cer
-			outs = F.softmax(outs, 1).transpose(1, 2)
+			outs = F.softmax(out, 1).transpose(1, 2)
 			ys = []
 			offset = 0
 			for y_len in y_lens:
