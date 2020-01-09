@@ -9,7 +9,8 @@ import numpy as np
 import tensorboardX as tensorboard
 import torch.nn.functional as F
 import os, json, random
-
+from lr_scheduler.Adamw import AdamW
+from lr_scheduler.cyclic_scheduler import CyclicLRWithRestarts, ReduceMaxLROnRestart
 
 # 1. set random seed
 random.seed(2050)
