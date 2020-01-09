@@ -58,7 +58,7 @@ def train(
 		dev_dataset, batch_size=batch_size, num_workers=8
 	)
 	
-	if config.opt == "sgd":
+	if config.optim == "sgd":
 		print("choose sgd.")
 		optimizer = torch.optim.SGD(
 			model.parameters(),
@@ -92,7 +92,7 @@ def train(
 		# lr_sched.step()
 		lr = get_lr(optimizer)
 		writer.add_scalar("lr/epoch", lr, epoch)
-		if config.opt == "adamwr": scheduler.step()
+		if config.optim == "adamwr": scheduler.step()
 		for i, (x, y, x_lens, y_lens) in enumerate(train_dataloader):
 			x = x.to(device)
 			out, out_lens = model(x, x_lens)
@@ -101,7 +101,7 @@ def train(
 			loss.backward()
 			nn.utils.clip_grad_norm_(model.parameters(), max_grad_norm)
 			optimizer.step()
-			if config.opt == "adamwr": scheduler.batch_step()
+			if config.optim == "adamwr": scheduler.batch_step()
 			
 			# cer
 			outs = F.softmax(outs, 1).transpose(1, 2)
