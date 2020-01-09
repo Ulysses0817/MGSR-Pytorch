@@ -73,10 +73,10 @@ def train(
 		if config.fp16:
 			# Allow Amp to perform casts as required by the opt_level
 			model, optimizer = amp.initialize(model, optimizer, opt_level=config.fp16)
-			scheduler = CyclicLRWithRestarts(optimizer, config.batch_size, epoch_size=len(train_dataset.idx), restart_period=5, t_mult=1.2, 
+			scheduler = CyclicLRWithRestarts(optimizer, config.batch_size, epoch_size=len(train_dataloader.dataset), restart_period=5, t_mult=1.2, 
 										  eta_on_restart_cb=ReduceMaxLROnRestart(ratio=config.wr_ratio), policy="cosine")
 		else:
-			scheduler = CyclicLRWithRestarts(optimizer, batch_size, epoch_size=len(train_dataset.idx), restart_period=5, t_mult=1.2, 
+			scheduler = CyclicLRWithRestarts(optimizer, batch_size, epoch_size=len(train_dataloader.dataset), restart_period=5, t_mult=1.2, 
 										  eta_on_restart_cb=ReduceMaxLROnRestart(ratio=config.wr_ratio), policy="cosine")
 	
 	ctcloss = CTCLoss(size_average=True)
