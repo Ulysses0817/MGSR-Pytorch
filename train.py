@@ -134,7 +134,6 @@ def train(
 		cer_tr /= len(train_dataloader.dataset)
 		epoch_loss = epoch_loss / batchs
 		cer_dev, loss_dev = eval(model, dev_dataloader)
-		# cer_tr = eval(model, train_dataloader)
 		writer.add_scalar("loss/epoch", epoch_loss, epoch)
 		writer.add_scalar("loss_dev/epoch", loss_dev, epoch)
 		writer.add_scalar("cer_tr/epoch", cer_tr, epoch)
@@ -197,15 +196,17 @@ if __name__ == "__main__":
 	parser.add_argument("-w","--weight_decay", default=0, type=float)	
 	parser.add_argument("-wrr","--wr_ratio", default=0.66, type=float,)
 	parser.add_argument("-opt","--optim", default="sgd")
-	parser.add_argument("-fp16","--fp16", default=False, type=ast.literal_eval,)	
+	parser.add_argument("-fp16","--fp16", default=False, type=ast.literal_eval,)
+	parser.add_argument("-ptd","--pretrained", default=None)	
 	
 	args = parser.parse_args()
 	
 	with open("./dataset/labels.json") as f:
 		vocabulary = json.load(f)
 		# vocabulary = "".join(vocabulary)
-	model = GatedConv(vocabulary)
+	model = GatedConv(vocabulary, pretrained = args.pretrained)
 	model.to(device)
+	
 	train(model, 	
 		epochs=args.epochs,
 		batch_size=args.batch_size,
