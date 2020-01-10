@@ -222,7 +222,7 @@ if __name__ == "__main__":
 	model = GatedConv(vocabulary)
 	if args.pretrained_path is not None:
 		print("loading pretrained model: ", args.pretrained_path)
-		model = load_pretrained(model)
+		model = load_pretrained(model, args.pretrained_path)
 	
 	model.to(device)
 	
