@@ -180,7 +180,22 @@ def eval(model, dataloader):
 	model.train()
 	return cer, epoch_loss
 
-
+def load_pretrained(model, pretrained_path):
+	package = torch.load(pretrained_path, map_location="cpu")
+	try:
+		pretrained_dict = package["state_dict"]
+		package_output_units = len(package["config"]["vocabulary"])
+	except:
+		pretrained_dict = package.state_dict()
+		package_output_units = len(package.vocabulary)
+	if package_output_units != model.output_units:
+		pretrained_dict = {k: v for k, v in pretrained_dict.items() if "cnn.10" not in k}
+		print(pretrained_dict.keys())
+	model_dict = model.state_dict()
+	model_dict.update(pretrained_dict)
+	model.load_state_dict(model_dict)
+	return model
+	
 if __name__ == "__main__":
 	import argparse, ast
 	parser = argparse.ArgumentParser()
@@ -197,14 +212,18 @@ if __name__ == "__main__":
 	parser.add_argument("-wrr","--wr_ratio", default=0.66, type=float,)
 	parser.add_argument("-opt","--optim", default="sgd")
 	parser.add_argument("-fp16","--fp16", default=False, type=ast.literal_eval,)
-	parser.add_argument("-ptd","--pretrained", default=None)	
+	parser.add_argument("-ptp","--pretrained_path", default=None)	
 	
 	args = parser.parse_args()
 	
 	with open("./dataset/labels.json") as f:
 		vocabulary = json.load(f)
 		# vocabulary = "".join(vocabulary)
-	model = GatedConv(vocabulary, pretrained = args.pretrained)
+	model = GatedConv(vocabulary)
+	if args.pretrained_path is not None:
+		print("loading pretrained model: ", args.pretrained_path)
+		model = load_pretrained(model)
+	
 	model.to(device)
 	
 	train(model, 	
