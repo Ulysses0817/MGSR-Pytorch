@@ -69,13 +69,15 @@ class GatedConv(MASRModel):
 		self.train()
 		return text[0]
 
-	def load_pretrained(self, output_units):
+	def load_pretrained(self, model_output_units):
 		package = torch.load(self.pretrained_path, map_location="cpu")
 		try:
 			pretrained_dict = package["state_dict"]
+			package_output_units = len(package["config"]["vocabulary"])
 		except:
 			pretrained_dict = package.state_dict()
-		if len(package.vocabulary) != output_units:
+			package_output_units = len(package.vocabulary)
+		if package_output_units != model_output_units:
 			pretrained_dict = {k: v for k, v in pretrained_dict.items() if "cnn.10" in k}
 			print(pretrained_dict.keys())
 		model_dict = self.cnn.state_dict()
