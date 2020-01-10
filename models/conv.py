@@ -78,7 +78,7 @@ class GatedConv(MASRModel):
 			pretrained_dict = package.state_dict()
 			package_output_units = len(package.vocabulary)
 		if package_output_units != model_output_units:
-			pretrained_dict = {k: v for k, v in pretrained_dict.items() if "cnn.10" in k}
+			pretrained_dict = {k: v for k, v in pretrained_dict.items() if "cnn.10" not in k}
 			print(pretrained_dict.keys())
 		model_dict = self.cnn.state_dict()
 		model_dict.update(pretrained_dict)
