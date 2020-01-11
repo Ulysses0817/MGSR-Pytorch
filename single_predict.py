@@ -30,7 +30,10 @@ model, decoder = model_setup(sys.argv[2], vocabulary = vocab)#"./pretrained/mode
 # print(model, decoder)
 with open(sys.argv[1], "r") as fr:
 	paths = fr.readlines()
-existp = pd.read_csv("./Recoder_new.txt", delimiter=",", header=None)[0].values
+try:
+	existp = pd.read_csv("./Recoder_new.txt", delimiter=",", header=None)[0].values
+except:
+	existp = []
 for p in paths:
 	if p in existp: continue
 	res = getres(p.strip(), model, decoder)
