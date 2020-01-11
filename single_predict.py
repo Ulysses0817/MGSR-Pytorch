@@ -32,9 +32,10 @@ with open(sys.argv[1], "r") as fr:
 	paths = fr.readlines()
 try:
 	existp = pd.read_csv("./Recoder_new.txt", delimiter=",", header=None)[0].values
-except:
+except Exception as e:
+	print(e)
 	existp = []
 for p in paths:
-	if p in existp: continue
+	if p.strip() in existp: continue
 	res = getres(p.strip(), model, decoder)
 	print(p.strip(), "\t", res)
