@@ -1,4 +1,5 @@
 import sys,json
+import pandas as pd
 from beamdecode import model_setup, predict
 
 def getres(wp, m, d):
