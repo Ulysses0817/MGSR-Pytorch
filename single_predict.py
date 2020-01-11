@@ -5,7 +5,7 @@ def getres(wp, m, d):
 	res = predict(wp, m, d)
 #     preds.append(res)
 	with open("./Recoder_new.txt", "a+") as fw:
-		fw.write(",".join([wp, res+"\n\r"]))
+		fw.write(",".join([wp, res+"\r\n"]))
 	return res
 	
 with open("./dataset/labels.json", "r") as f:
@@ -30,4 +30,5 @@ model, decoder = model_setup(sys.argv[2], vocabulary = vocab)#"./pretrained/mode
 with open(sys.argv[1], "r") as fr:
 	paths = fr.readlines()
 for p in paths:
-	getres(p.strip(), model, decoder)
+	res = getres(p.strip(), model, decoder)
+	print(p.strip(), "\t", res)
