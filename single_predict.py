@@ -1,4 +1,4 @@
-import sys
+import sys,json
 from beamdecode import model_setup, predict
 
 def getres(wp, m, d):
@@ -8,18 +8,19 @@ def getres(wp, m, d):
 		fw.write(",".join([wp, res+"\n\r"]))
 	return res
 	
-vocab = model.vocabulary
+with open("./dataset/labels.json", "r") as f:
+	vocab = json.load(f)
 
 gt1 = []
 for i in vocab:
-    if len(i) >1:
-        gt1.append(i)
+	if len(i) >1:
+		gt1.append(i)
 import codecs
 start,end = (0x4E00, 0x9FA5)
 hanzis = []
 for codepoint in range(int(start),int(end)):
-    if chr(codepoint) not in vocab:
-        hanzis.append(chr(codepoint))
+	if chr(codepoint) not in vocab:
+		hanzis.append(chr(codepoint))
 hanzis = hanzis[:len(gt1)]
 en2chr = dict(zip(gt1, hanzis))
 vocab = [en2chr[i] if i in gt1 else i for i in vocab]
