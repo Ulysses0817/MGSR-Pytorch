@@ -1,27 +1,52 @@
 import sys
-import swifter
-import pandas as pd
-from beamdecode import model_setup, predict
+import data
+import torch
+import torch.nn.functional as F
+
 from tqdm import tqdm
+from models.conv import GatedConv
+from decoder import GreedyDecoder
 
-# def getres(wp, m, d):
-	# res = predict(wp, m, d)
-# #     preds.append(res)
-	# with open("./Recoder_new.txt", "a+") as fw:
-		# fw.write(res+"\n")
-	# return res
-# model, decoder = model_setup(sys.argv[2])#"./pretrained/model_6_33.6234_0.6837.pth"
-
-test_orig = pd.read_csv("./dataset/test.csv")
-test = test_orig.loc[test_orig.words==" "]
-test["wav_path"] = test["Unnamed: 0"].swifter.apply(lambda x: "/kaggle/input/magicdata/test/test_byte(%s)/"%sys.argv[1]+"wave_%s.bin"%x)
-# test.to_csv("./test_orig.csv", index = False)
-# test["pred"] = test.wav_path.swifter.apply(lambda x: predict(x))
-# if os.path.exists("./Recoder_new.txt"):
-	# os.remove("./Recoder_new.txt")
-# ress = []
-for i in tqdm(test["wav_path"].values):
-	os.system("python single_predict.py %s"%i)
-# test["pred"] = ress
-# test.to_csv("./test_res.csv", index = False)
-# test_orig.to_csv("./test_orig_res.csv", index = False)
+def model_setup(args = None):
+	
+	test_dataset = data.MASRDataset(args.data_path, "./dataset/labels.json")
+	dataloader = data.MASRDataLoader(
+			test_dataset, batch_size=args.batch_size, num_workers=args.num_workers
+		)
+		
+	model = GatedConv.load(args.pretrained_path)
+	
+	return model, dataloader
+	
+def test(model, dataloader):
+	model.eval()
+	decoder = GreedyDecoder(dataloader.dataset.labels_str)
+	results, targets = [], []
+	print("testing")
+	with torch.no_grad():
+		for i, (x, y, x_lens) in tqdm(enumerate(dataloader)):
+			x = x.to(device)
+			outs, out_lens = model(x, x_lens)
+			outs = F.softmax(outs, 1)
+			outs = outs.transpose(1, 2)
+			out_strings, out_offsets = decoder.decode(outs, out_lens)
+			results.extend(out_strings[0])
+			targets.extend(y)
+	return 
+	
+if __name__ == "__main__":
+	import argparse, ast
+	parser = argparse.ArgumentParser()
+	parser.description='Hi guys, let\'s test!'
+	parser.add_argument("-b","--batch_size", type=int, default=32)
+	parser.add_argument("-ptp","--pretrained_path", default=None)
+	parser.add_argument("-te","--test_index_path", default="./dataset/test.json")
+	parser.add_argument("-l","--labels_path", default="./dataset/labels.json")
+	parser.add_argument("-cpu","--num_workers", default=8, type=int)
+	
+	args = parser.parse_args()
+	
+	model, dataloader = model_setup(args)
+	results, targets = test(model, dataloader)
+	with open("./greedy_results.json", "w") as fw:
+		json.dump([results, targets], fw)
