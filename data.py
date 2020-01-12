@@ -101,7 +101,10 @@ def GetEditDistance(str1, str2):
 	return leven_cost
 
 class MASRDataset(Dataset):
-	def __init__(self, index_path, labels_path):
+	def __init__(self, index_path, labels_path, mode = "train"):
+	
+		self.mode = mode
+		
 		if ".json" not in index_path:
 			with open(index_path) as f:
 				idx = f.readlines()
@@ -119,8 +122,10 @@ class MASRDataset(Dataset):
 		wav_path, transcript = self.idx[index]
 		wav = load_audio(wav_path)
 		spect = spectrogram(wav)
-		transcript = list(filter(None, [self.labels.get(x) for x in transcript]))
-
+		if self.mode in ["train", "dev"]:
+			transcript = list(filter(None, [self.labels.get(x) for x in transcript]))
+		elif self.mode == "test":
+			transcript = wav_path
 		return spect, transcript
 
 	def __len__(self):
@@ -149,8 +154,11 @@ def _collate_fn(batch):
 		input_lens[x] = seq_length
 		target_lens[x] = len(target)
 		targets.extend(target)
-	targets = torch.IntTensor(targets)
-	return inputs, targets, input_lens, target_lens
+	if self.dataset.mode == "test":
+		return inputs, targets, input_lens
+	else:
+		targets = torch.IntTensor(targets)
+		return inputs, targets, input_lens, target_lens
 
 
 class MASRDataLoader(DataLoader):
