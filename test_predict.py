@@ -9,7 +9,7 @@ from decoder import GreedyDecoder
 
 def model_setup(args = None):
 	
-	test_dataset = data.MASRDataset(args.data_path, "./dataset/labels.json")
+	test_dataset = data.MASRDataset(args.test_index_path, args.labels_path)
 	dataloader = data.MASRDataLoader(
 			test_dataset, batch_size=args.batch_size, num_workers=args.num_workers
 		)
