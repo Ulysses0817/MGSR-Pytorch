@@ -30,16 +30,16 @@ def test(model, dataloader, device):
 		for i, (x, y, x_lens) in tqdm(enumerate(dataloader)):
 			x = x.to(device)
 			outs, out_lens = model(x, x_lens)
-			probs.append([outs.cpu().numpy(), out_lens.cpu().numpy()])
+			# probs.append([outs.cpu().numpy(), out_lens.cpu().numpy()])
 			outs = F.softmax(outs, 1)
 			outs = outs.transpose(1, 2)
 			out_strings, out_offsets = decoder.decode(outs, out_lens)
 			results.extend(out_strings[0])
 			targets.extend(y)
-	try:
-		np.save("./probs.npy", probs)
-	except Exception as e:
-		print(e)
+	# try:
+		# np.save("./probs.npy", probs)
+	# except Exception as e:
+		# print(e)
 	return results, targets
 	
 if __name__ == "__main__":
