@@ -56,6 +56,8 @@ if __name__ == "__main__":
 		print("cuda is available...")
 		
 	model, dataloader = model_setup(args)
+	model.to(device)
+	
 	results, targets = test(model, dataloader, device)
 	with open("./greedy_results.json", "w") as fw:
 		json.dump([results, targets], fw)
