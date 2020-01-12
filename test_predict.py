@@ -34,7 +34,7 @@ def test(model, dataloader, device):
 			outs = F.softmax(outs, 1)
 			outs = outs.transpose(1, 2)
 			out_strings, out_offsets = decoder.decode(outs, out_lens)
-			results.extend(out_strings[0])
+			results.extend(out_strings)
 			targets.extend(y)
 	# try:
 		# np.save("./probs.npy", probs)

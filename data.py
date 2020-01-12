@@ -160,7 +160,7 @@ class MASRDataLoader(DataLoader):
 			inputs[x].narrow(1, 0, seq_length).copy_(tensor)
 			input_lens[x] = seq_length
 			target_lens[x] = len(target)
-			targets.extend(target)
+			targets.append(target)
 		if self.dataset.mode == "test":
 			return inputs, targets, input_lens
 		else:
