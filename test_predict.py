@@ -35,7 +35,7 @@ def test(model, dataloader, device):
 		if i %10 == 0:
 			with open("./greedy_results_tmp.json", "w") as fw:
 				json.dump([results, targets], fw)
-	return 
+	return results, targets
 	
 if __name__ == "__main__":
 	import argparse, ast
