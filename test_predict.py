@@ -1,6 +1,8 @@
 import sys
+import json
 import data
 import torch
+import numpy as np
 import torch.nn.functional as F
 
 from tqdm import tqdm
@@ -22,19 +24,22 @@ def test(model, dataloader, device):
 	model.eval()
 	decoder = GreedyDecoder(dataloader.dataset.labels_str)
 	results, targets = [], []
+	probs = []
 	print("testing")
 	with torch.no_grad():
 		for i, (x, y, x_lens) in tqdm(enumerate(dataloader)):
 			x = x.to(device)
 			outs, out_lens = model(x, x_lens)
+			probs.append([outs.cpu().numpy(), out_lens.cpu().numpy()])
 			outs = F.softmax(outs, 1)
 			outs = outs.transpose(1, 2)
 			out_strings, out_offsets = decoder.decode(outs, out_lens)
 			results.extend(out_strings[0])
 			targets.extend(y)
-		if i %10 == 0:
-			with open("./greedy_results_tmp.json", "w") as fw:
-				json.dump([results, targets], fw)
+	try:
+		np.save("./probs.npy", probs)
+	except Exception as e:
+		print(e)
 	return results, targets
 	
 if __name__ == "__main__":
