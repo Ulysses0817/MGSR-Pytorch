@@ -161,9 +161,9 @@ class MASRDataLoader(DataLoader):
 			input_lens[x] = seq_length
 			target_lens[x] = len(target)
 			if self.dataset.mode == "test": 
-				targets.extend(target)
-			else:
 				targets.append(target)
+			else:
+				targets.extend(target)
 		if self.dataset.mode == "test":
 			return inputs, targets, input_lens
 		else:
