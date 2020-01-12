@@ -18,7 +18,7 @@ def model_setup(args = None):
 	
 	return model, dataloader
 	
-def test(model, dataloader):
+def test(model, dataloader, device):
 	model.eval()
 	decoder = GreedyDecoder(dataloader.dataset.labels_str)
 	results, targets = [], []
@@ -45,8 +45,14 @@ if __name__ == "__main__":
 	parser.add_argument("-cpu","--num_workers", default=8, type=int)
 	
 	args = parser.parse_args()
-	
+	# MultiGpu
+	device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+	if device.type == "cpu":
+		print("cpu is available...")
+	else:
+		print("cuda is available...")
+		
 	model, dataloader = model_setup(args)
-	results, targets = test(model, dataloader)
+	results, targets = test(model, dataloader, device)
 	with open("./greedy_results.json", "w") as fw:
 		json.dump([results, targets], fw)
