@@ -179,7 +179,7 @@ def eval(model, dataloader):
 		epoch_loss /= i+1
 	model.train()
 	return cer, epoch_loss
-
+	
 def load_pretrained(model, pretrained_path):
 	package = torch.load(pretrained_path, map_location="cpu")
 	try:
@@ -216,7 +216,7 @@ if __name__ == "__main__":
 	
 	args = parser.parse_args()
 	
-	with open("./dataset/labels.json") as f:
+	with open(args.labels_path) as f:
 		vocabulary = json.load(f)
 		# vocabulary = "".join(vocabulary)
 	model = GatedConv(vocabulary)
