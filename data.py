@@ -132,37 +132,38 @@ class MASRDataset(Dataset):
 		return len(self.idx)
 
 
-def _collate_fn(batch):
-	def func(p):
-		return p[0].size(1)
-
-	batch = sorted(batch, key=lambda sample: sample[0].size(1), reverse=True)
-	longest_sample = max(batch, key=func)[0]
-	freq_size = longest_sample.size(0)
-	minibatch_size = len(batch)
-	max_seqlength = longest_sample.size(1)
-	inputs = torch.zeros(minibatch_size, freq_size, max_seqlength)
-	input_lens = torch.IntTensor(minibatch_size)
-	target_lens = torch.IntTensor(minibatch_size)
-	targets = []
-	for x in range(minibatch_size):
-		sample = batch[x]
-		tensor = sample[0]
-		target = sample[1]
-		seq_length = tensor.size(1)
-		inputs[x].narrow(1, 0, seq_length).copy_(tensor)
-		input_lens[x] = seq_length
-		target_lens[x] = len(target)
-		targets.extend(target)
-	if self.dataset.mode == "test":
-		return inputs, targets, input_lens
-	else:
-		targets = torch.IntTensor(targets)
-		return inputs, targets, input_lens, target_lens
 
 
 class MASRDataLoader(DataLoader):
 	def __init__(self, *args, **kwargs):
 		super(MASRDataLoader, self).__init__(*args, **kwargs)
-		self.collate_fn = _collate_fn
+		self.collate_fn = self._collate_fn
+
+	def _collate_fn(self, batch):
+		def func(p):
+			return p[0].size(1)
+
+		batch = sorted(batch, key=lambda sample: sample[0].size(1), reverse=True)
+		longest_sample = max(batch, key=func)[0]
+		freq_size = longest_sample.size(0)
+		minibatch_size = len(batch)
+		max_seqlength = longest_sample.size(1)
+		inputs = torch.zeros(minibatch_size, freq_size, max_seqlength)
+		input_lens = torch.IntTensor(minibatch_size)
+		target_lens = torch.IntTensor(minibatch_size)
+		targets = []
+		for x in range(minibatch_size):
+			sample = batch[x]
+			tensor = sample[0]
+			target = sample[1]
+			seq_length = tensor.size(1)
+			inputs[x].narrow(1, 0, seq_length).copy_(tensor)
+			input_lens[x] = seq_length
+			target_lens[x] = len(target)
+			targets.extend(target)
+		if self.dataset.mode == "test":
+			return inputs, targets, input_lens
+		else:
+			targets = torch.IntTensor(targets)
+			return inputs, targets, input_lens, target_lens
 
