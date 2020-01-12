@@ -32,6 +32,9 @@ def test(model, dataloader, device):
 			out_strings, out_offsets = decoder.decode(outs, out_lens)
 			results.extend(out_strings[0])
 			targets.extend(y)
+		if i %10 == 0:
+			with open("./greedy_results_tmp.json", "w") as fw:
+				json.dump([results, targets], fw)
 	return 
 	
 if __name__ == "__main__":
