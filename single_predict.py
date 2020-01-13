@@ -50,7 +50,8 @@ if __name__ == "__main__":
 	with open(args.wav_path, "r") as fr:
 		paths = fr.readlines()
 	try:
-		existp = pd.read_csv(args.save_path, delimiter=",", header=None)[0].values
+		existp = pd.read_csv(args.save_path, delimiter=",", header=None)[0].tolist()
+		existp = [item.replace("Android", "IOS").replace("Recorder", "IOS") for item in existp]
 	except Exception as e:
 		print(e)
 		existp = []
