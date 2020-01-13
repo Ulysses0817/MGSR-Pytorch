@@ -11,7 +11,7 @@ from decoder import GreedyDecoder
 
 def model_setup(args = None):
 	
-	test_dataset = data.MASRDataset(args.test_index_path, args.labels_path, mode="test")
+	test_dataset = data.MASRDataset(args.test_index_path, args.labels_path, args.mode)
 	dataloader = data.MASRDataLoader(
 			test_dataset, batch_size=args.batch_size, num_workers=args.num_workers
 		)
