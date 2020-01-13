@@ -31,19 +31,19 @@ if __name__ == "__main__":
 	with open(args.labels_path, "r") as f:
 		vocab = json.load(f)
 
-	# gt1 = []
-	# for i in vocab:
-		# if len(i) >1:
-			# gt1.append(i)
-	# import codecs
-	# start,end = (0x4E00, 0x9FA5)
-	# hanzis = []
-	# for codepoint in range(int(start),int(end)):
-		# if chr(codepoint) not in vocab:
-			# hanzis.append(chr(codepoint))
-	# hanzis = hanzis[:len(gt1)]
-	# en2chr = dict(zip(gt1, hanzis))
-	# vocab = [en2chr[i] if i in gt1 else i for i in vocab]
+	gt1 = []
+	for i in vocab:
+		if len(i) >1:
+			gt1.append(i)
+	import codecs
+	start,end = (0x4E00, 0x9FA5)
+	hanzis = []
+	for codepoint in range(int(start),int(end)):
+		if chr(codepoint) not in vocab:
+			hanzis.append(chr(codepoint))
+	hanzis = hanzis[:len(gt1)]
+	en2chr = dict(zip(gt1, hanzis))
+	vocab = [en2chr[i] if i in gt1 else i for i in vocab]
 
 	model, decoder = model_setup(args.pretrained_path, vocabulary = vocab)#"./pretrained/model_6_33.6234_0.6837.pth"
 	# print(model, decoder)
