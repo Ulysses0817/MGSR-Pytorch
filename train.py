@@ -228,7 +228,7 @@ if __name__ == "__main__":
 	parser.add_argument("-w","--weight_decay", default=0, type=float)	
 	parser.add_argument("-wrr","--wr_ratio", default=0.66, type=float,)
 	parser.add_argument("-opt","--optim", default="sgd")
-	parser.add_argument("-fp16","--fp16", default=None, type=str,)
+	parser.add_argument("-fp16","--fp16", default=None, type=str, help="this parameter can be set as 'O1' or 'O2' ")
 	parser.add_argument("-speed","--speed", default=True, type=ast.literal_eval,)
 	parser.add_argument("-pitch","--pitch", default=True, type=ast.literal_eval,)
 	parser.add_argument("-specaug","--specaug", default=True, type=ast.literal_eval,)
@@ -236,6 +236,9 @@ if __name__ == "__main__":
 	parser.add_argument("-ptp","--pretrained_path", default=None)
 	
 	args = parser.parse_args()
+	
+	if args.fp16 is not None:
+		from apex import amp
 	
 	with open(args.labels_path) as f:
 		vocabulary = json.load(f)
