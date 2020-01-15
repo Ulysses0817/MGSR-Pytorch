@@ -152,9 +152,9 @@ def train(
 		
 		writer.add_scalar("loss/epoch", epoch_loss, epoch)
 		# writer.add_scalar("loss_dev/epoch", loss_dev, epoch)
-		writer.add_scalars("loss_dev/epoch", {"loss_dev":loss_dev, "loss_ios":loss_devs[0], "loss_recorder":loss_devs[2], "loss_android":loss_devs[1], epoch)
+		writer.add_scalars("loss_dev/epoch", {"loss_dev":loss_dev, "loss_ios":loss_devs[0], "loss_recorder":loss_devs[2], "loss_android":loss_devs[1]}, epoch)
 		writer.add_scalar("cer_tr/epoch", cer_tr, epoch)
-		writer.add_scalars("cer_dev/epoch", {"cer_dev":cer_dev, "cer_ios":cer_devs[0], "cer_recorder":cer_devs[2], "cer_android":cer_devs[1], epoch)
+		writer.add_scalars("cer_dev/epoch", {"cer_dev":cer_dev, "cer_ios":cer_devs[0], "cer_recorder":cer_devs[2], "cer_android":cer_devs[1]}, epoch)
 		print("Epoch {}: Loss= {:.4f}, Loss_dev= {:.4f}, CER_tr = {:.4f}, CER_dev = {:.4f}".format(epoch, epoch_loss, loss_dev, cer_tr, cer_dev))
 		if cer_dev <= best_cer:
 			best_cer = cer_dev
