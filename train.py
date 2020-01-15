@@ -1,4 +1,4 @@
-import torch
+import torch, time
 import torch.nn as nn
 import data
 from warpctc_pytorch import CTCLoss
@@ -141,7 +141,7 @@ def train(
 		print("Epoch {}: Loss= {:.4f}, Loss_dev= {:.4f}, CER_tr = {:.4f}, CER_dev = {:.4f}".format(epoch, epoch_loss, loss_dev, cer_tr, cer_dev))
 		if cer_dev <= best_cer:
 			best_cer = cer_dev
-			torch.save(model, "pretrained/model_bestCer.pth")
+			torch.save(model, "pretrained/model_bestCer_{}_{:.4f}_{}.pth".format(config.optim, epoch+cer_dev, time.strftime("%m%d%H%M", time.localtime())))
 			with open("{}_{:.4f}_{:.4f}_{:.4f}.info".format(epoch, epoch_loss, cer_tr, cer_dev), "w") as _fw:
 				_fw.write("")
 
