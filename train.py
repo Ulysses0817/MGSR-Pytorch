@@ -45,9 +45,9 @@ def train(
 	weight_decay=0,
 	config = None
 ):
-	train_dataset = data.MASRDataset(train_index_path, labels_path)
+	train_dataset = data.MASRDataset(train_index_path, labels_path, config)
 	batchs = (len(train_dataset) + batch_size - 1) // batch_size
-	dev_dataset = data.MASRDataset(dev_index_path, labels_path)
+	dev_dataset = data.MASRDataset(dev_index_path, labels_path, config)
 	train_dataloader = data.MASRDataLoader(
 		train_dataset, batch_size=batch_size, num_workers=8
 	)
@@ -204,7 +204,7 @@ if __name__ == "__main__":
 	parser.add_argument("-b","--batch_size", type=int, default=32)
 	parser.add_argument("-tr","--train_index_path", default="./dataset/train_index.json")
 	parser.add_argument("-dev","--dev_index_path", default="./dataset/dev_index.json")
-	parser.add_argument("-l","--labels_path", default="./dataset/labels.json")
+	parser.add_argument("-lp","--labels_path", default="./dataset/labels.json")
 	parser.add_argument("-lr","--learning_rate", default=0.6, type=float)
 	parser.add_argument("-mgn","--max_grad_norm", default=0.2, type=float)
 	parser.add_argument("-mon","--momentum", default=0.8, type=float)
@@ -212,7 +212,11 @@ if __name__ == "__main__":
 	parser.add_argument("-wrr","--wr_ratio", default=0.66, type=float,)
 	parser.add_argument("-opt","--optim", default="sgd")
 	parser.add_argument("-fp16","--fp16", default=False, type=ast.literal_eval,)
-	parser.add_argument("-ptp","--pretrained_path", default=None)	
+	parser.add_argument("-speed","--speed", default=True, type=ast.literal_eval,)
+	parser.add_argument("-pitch","--pitch", default=True, type=ast.literal_eval,)
+	parser.add_argument("-specaug","--specaug", default=True, type=ast.literal_eval,)
+	parser.add_argument("-mel","--mel_spec", default=True, type=ast.literal_eval,)
+	parser.add_argument("-ptp","--pretrained_path", default=None)
 	
 	args = parser.parse_args()
 	

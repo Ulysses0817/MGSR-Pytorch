@@ -6,10 +6,13 @@ import scipy
 import json
 from torch.utils.data import DataLoader
 from torch.utils.data import Dataset
+# from augmentor.specaugment import specaug
+from augmentor.libaug import speed_tune, pitch_tune, specaugment
 
 sample_rate = 16000
 window_size = 0.02
 window_stride = 0.01
+n_mels = 80
 n_fft = int(sample_rate * window_size)
 win_length = n_fft
 hop_length = int(sample_rate * window_stride)
@@ -33,14 +36,25 @@ def load_audio(wav_path, normalize=True):  # -> numpy array
 		return wav
 
 
-def spectrogram(wav, normalize=True):
+def spectrogram(wav, mel_spec=False ,normalize=True):
 # librosa
-	D = librosa.stft(
-		wav, n_fft=n_fft, hop_length=hop_length, win_length=win_length, window=window
-	)
+	if not mel_spec:
+		D = librosa.stft(
+			wav, n_fft=n_fft, hop_length=hop_length, win_length=win_length, window=window
+		)
 
-	spec, phase = librosa.magphase(D)
-	spec = np.log1p(spec)
+		spec, phase = librosa.magphase(D)
+		spec = np.log1p(spec)
+	else:
+		spec = librosa.feature.melspectrogram(wav,
+											 sr=sample_rate,
+											 n_mels=n_mels,
+											 hop_length=hop_length,
+											 win_length=win_length,
+											 window=window,
+											 n_fft=n_fft)
+		spec = librosa.power_to_db(spec)  # 转化频谱系数单位
+		# spec = spec.astype(np.float32)
 	
 # handled
 	
@@ -101,9 +115,10 @@ def GetEditDistance(str1, str2):
 	return leven_cost
 
 class MASRDataset(Dataset):
-	def __init__(self, index_path, labels_path, mode = "train"):
+	def __init__(self, index_path, labels_path, mode = "train", config = None):
 	
 		self.mode = mode
+		self.config = config
 		
 		if ".json" not in index_path:
 			with open(index_path) as f:
@@ -121,7 +136,15 @@ class MASRDataset(Dataset):
 	def __getitem__(self, index):
 		wav_path, transcript = self.idx[index]
 		wav = load_audio(wav_path)
-		spect = spectrogram(wav)
+		
+		if self.config.speed:
+			wav = speed_tune(wav)
+		if self.config.pitch:
+			wav = pitch_tune(wav)
+		spect = spectrogram(wav, self.config.mel_spec)
+		if self.config.specaug:
+			spect = specaugment(spect)
+		
 		if self.mode in ["train", "dev"]:
 			transcript = list(filter(None, [self.labels.get(x) for x in transcript]))
 		elif self.mode == "test":
