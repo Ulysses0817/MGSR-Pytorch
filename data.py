@@ -115,10 +115,11 @@ def GetEditDistance(str1, str2):
 	return leven_cost
 
 class MASRDataset(Dataset):
-	def __init__(self, index_path, labels_path, mode = "train", config = None):
+	def __init__(self, index_path, labels_path, mode = "train", config = None, device_type = None):
 	
 		self.mode = mode
 		self.config = config
+		self.device_type = device_type
 		
 		if ".json" not in index_path:
 			with open(index_path) as f:
@@ -135,6 +136,10 @@ class MASRDataset(Dataset):
 
 	def __getitem__(self, index):
 		wav_path, transcript = self.idx[index]
+		if self.mode == "dev" and self.device_type is not None:
+			wav_path =  "/kaggle/input/magicdata/dev_device/dev_byte(%s)/"%self.device_type + os.path.basename(x)
+		if self.mode == "test" and self.device_type is not None:
+			wav_path =  "/kaggle/input/magicdata/test/test_byte(%s)/"%self.device_type + os.path.basename(x)
 		wav = load_audio(wav_path)
 		
 		if self.config.speed:

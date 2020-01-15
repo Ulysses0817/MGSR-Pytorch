@@ -45,18 +45,20 @@ def train(
 	weight_decay=0,
 	config = None
 ):
+
 	train_dataset = data.MASRDataset(train_index_path, labels_path, config)
 	batchs = (len(train_dataset) + batch_size - 1) // batch_size
-	dev_dataset = data.MASRDataset(dev_index_path, labels_path, config)
 	train_dataloader = data.MASRDataLoader(
 		train_dataset, batch_size=batch_size, num_workers=8
 	)
 	train_dataloader_shuffle = data.MASRDataLoader(
 		train_dataset, batch_size=batch_size, num_workers=8, shuffle=True
 	)
-	dev_dataloader = data.MASRDataLoader(
-		dev_dataset, batch_size=batch_size, num_workers=8
-	)
+	
+	dev_datasets, dev_dataloaders = [], []
+	for _item in ["IOS", "Android", "Recorder"]:
+		dev_datasets.append(data.MASRDataset(dev_index_path, labels_path, config, device_type = _item))
+		dev_dataloaders.append(data.MASRDataLoader(dev_datasets[-1], batch_size=batch_size, num_workers=8))
 	
 	if config.optim == "sgd":
 		print("choose sgd.")
@@ -100,7 +102,13 @@ def train(
 			outs = out.transpose(0, 1).transpose(0, 2)
 			loss = ctcloss(outs, y, out_lens, y_lens)
 			optimizer.zero_grad()
-			loss.backward()
+			# 混合精度加速
+			if config.fp16 is not None:
+				with amp.scale_loss(loss, optimizer) as scaled_loss:
+					scaled_loss.backward()
+			else:
+				loss.backward()
+
 			if config.optim == "sgd": nn.utils.clip_grad_norm_(model.parameters(), max_grad_norm)
 			optimizer.step()
 			if config.optim == "adamwr": scheduler.batch_step()
@@ -133,11 +141,20 @@ def train(
 				)
 		cer_tr /= len(train_dataloader.dataset)
 		epoch_loss = epoch_loss / batchs
-		cer_dev, loss_dev = eval(model, dev_dataloader)
+		
+		cer_devs, loss_devs = [], []
+		for dev_dataloader in dev_dataloaders:
+			cer_dev, loss_dev = eval(model, dev_dataloader)
+			cer_devs.append(cer_dev)
+			loss_devs.append(loss_dev)
+		cer_dev = sum(cer_devs)/3
+		loss_dev  = sum(loss_devs)/3
+		
 		writer.add_scalar("loss/epoch", epoch_loss, epoch)
-		writer.add_scalar("loss_dev/epoch", loss_dev, epoch)
+		# writer.add_scalar("loss_dev/epoch", loss_dev, epoch)
+		writer.add_scalars("loss_dev/epoch", {"loss_dev":loss_dev, "loss_ios":loss_devs[0], "loss_recorder":loss_devs[2], "loss_android":loss_devs[1], epoch)
 		writer.add_scalar("cer_tr/epoch", cer_tr, epoch)
-		writer.add_scalar("cer_dev/epoch", cer_dev, epoch)
+		writer.add_scalars("cer_dev/epoch", {"cer_dev":cer_dev, "cer_ios":cer_devs[0], "cer_recorder":cer_devs[2], "cer_android":cer_devs[1], epoch)
 		print("Epoch {}: Loss= {:.4f}, Loss_dev= {:.4f}, CER_tr = {:.4f}, CER_dev = {:.4f}".format(epoch, epoch_loss, loss_dev, cer_tr, cer_dev))
 		if cer_dev <= best_cer:
 			best_cer = cer_dev
@@ -211,7 +228,7 @@ if __name__ == "__main__":
 	parser.add_argument("-w","--weight_decay", default=0, type=float)	
 	parser.add_argument("-wrr","--wr_ratio", default=0.66, type=float,)
 	parser.add_argument("-opt","--optim", default="sgd")
-	parser.add_argument("-fp16","--fp16", default=False, type=ast.literal_eval,)
+	parser.add_argument("-fp16","--fp16", default=None, type=str,)
 	parser.add_argument("-speed","--speed", default=True, type=ast.literal_eval,)
 	parser.add_argument("-pitch","--pitch", default=True, type=ast.literal_eval,)
 	parser.add_argument("-specaug","--specaug", default=True, type=ast.literal_eval,)
