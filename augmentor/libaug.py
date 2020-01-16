@@ -28,7 +28,7 @@ def pitch_tune(wav, sr=16000, n_steps = None, prob = 0.5):
 		if random.random() <= prob:
 			n_steps = round(random.random() - 0.5, 2)
 		else:
-			wav
+			return wav
 	wav_pitch_tune = librosa.effects.pitch_shift(wav, sr, n_steps=n_steps)
 	return wav_pitch_tune
 
