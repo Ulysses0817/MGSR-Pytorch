@@ -206,7 +206,7 @@ def load_pretrained(model, pretrained_path):
 		pretrained_dict = package.state_dict()
 		package_output_units = len(package.vocabulary)
 	if package_output_units != model.output_units:
-		pretrained_dict = {k: v for k, v in pretrained_dict.items() if "cnn.10" not in k}
+		pretrained_dict = {k: v for k, v in pretrained_dict.items() if ("cnn.10" not in k) and ("cnn.0" not in k)}
 		print(pretrained_dict.keys())
 	model_dict = model.state_dict()
 	model_dict.update(pretrained_dict)
