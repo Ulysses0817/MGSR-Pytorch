@@ -33,7 +33,7 @@ class GatedConv(MASRModel):
 		self.name = name
 		self.output_units = len(vocabulary)
 		modules = []
-		modules.append(ConvBlock(nn.Conv1d(161, 500, 48, 2, 97), 0.2))
+		modules.append(ConvBlock(nn.Conv1d(80, 500, 48, 2, 97), 0.2))
 
 		for i in range(7):
 			modules.append(ConvBlock(nn.Conv1d(250, 500, 7, 1), 0.3))
