@@ -32,7 +32,7 @@ def pitch_tune(wav, sr=16000, n_steps = None, prob = 0.5):
 	wav_pitch_tune = librosa.effects.pitch_shift(wav, sr, n_steps=n_steps)
 	return wav_pitch_tune
 
-def specaugment(spec, W=80, F=27, T=70, num_freq_masks=2, num_time_masks=2, p=0.2, replace_with_zero=False):
+def specaugment(spec, W=60, F=27, T=70, num_freq_masks=2, num_time_masks=2, p=0.2, replace_with_zero=False):
 	'''SpecAugment
 	Reference: SpecAugment: A Simple Data Augmentation Method for Automatic Speech Recognition
 		(https://arxiv.org/pdf/1904.08779.pdf)
@@ -50,7 +50,7 @@ def specaugment(spec, W=80, F=27, T=70, num_freq_masks=2, num_time_masks=2, p=0.
 	else:
 		pad_value = spec.mean()
 	
-	if random.random() <= 0.5:
+	if random.random() <= 0.5 and spec.size(1) > 2*W:
 		spec = time_warp(spec, W=W)
 	if random.random() <= 0.65:
 		spec = freq_mask(spec, F=F, num_masks=num_freq_masks, pad_value=pad_value)
