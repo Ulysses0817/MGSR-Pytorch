@@ -18,6 +18,8 @@ def speed_tune(wav, speed_rate = None, prob = 0.5):
 	if speed_rate is None:
 		if random.random() <= prob:
 			speed_rate = random.random() * 0.2 + 0.9
+		else:
+			return wav
 	wav_speed_tune = librosa.effects.time_stretch(wav, speed_rate)
 	return wav_speed_tune
 	
@@ -25,6 +27,8 @@ def pitch_tune(wav, sr=16000, n_steps = None, prob = 0.5):
 	if n_steps is None:
 		if random.random() <= prob:
 			n_steps = round(random.random() - 0.5, 2)
+		else:
+			wav
 	wav_pitch_tune = librosa.effects.pitch_shift(wav, sr, n_steps=n_steps)
 	return wav_pitch_tune
 
