@@ -74,7 +74,7 @@ def train(
 		optimizer = AdamW(model.parameters(), lr=learning_rate, weight_decay=1e-4)
 		if config.fp16:
 			# Allow Amp to perform casts as required by the opt_level
-			model, optimizer = amp.initialize(model, optimizer, opt_level=config.fp16)
+			model, optimizer = amp.initialize(model, optimizer, opt_level=config.fp16, loss_scale=args.loss_scale)
 			scheduler = CyclicLRWithRestarts(optimizer, config.batch_size, epoch_size=len(train_dataloader.dataset), restart_period=5, t_mult=1.2, 
 										  eta_on_restart_cb=ReduceMaxLROnRestart(ratio=config.wr_ratio), policy="cosine")
 		else:
@@ -231,6 +231,7 @@ if __name__ == "__main__":
 	parser.add_argument("-wrr","--wr_ratio", default=0.66, type=float,)
 	parser.add_argument("-opt","--optim", default="sgd")
 	parser.add_argument("-fp16","--fp16", default=None, type=str, help="this parameter can be set as 'O1' or 'O2' ")
+	parser.add_argument("-lscale","--loss_scale", default='dynamic', type=str)
 	parser.add_argument("-speed","--speed", default=True, type=ast.literal_eval,)
 	parser.add_argument("-pitch","--pitch", default=True, type=ast.literal_eval,)
 	parser.add_argument("-specaug","--specaug", default=True, type=ast.literal_eval,)
