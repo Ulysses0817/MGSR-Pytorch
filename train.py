@@ -12,7 +12,7 @@ import os, json, random
 from lr_scheduler.Adamw import AdamW
 from lr_scheduler.cyclic_scheduler import CyclicLRWithRestarts, ReduceMaxLROnRestart
 
-torch.multiprocessing.set_start_method('spawn', force=True)
+#torch.multiprocessing.set_start_method('spawn', force=True)
 
 # 1. set random seed
 random.seed(2050)
@@ -51,16 +51,16 @@ def train(
 	train_dataset = data.MASRDataset(train_index_path, labels_path, config = config)
 	batchs = (len(train_dataset) + batch_size - 1) // batch_size
 	train_dataloader = data.MASRDataLoader(
-		train_dataset, batch_size=batch_size, num_workers=2
+		train_dataset, batch_size=batch_size, num_workers=0
 	)
 	train_dataloader_shuffle = data.MASRDataLoader(
-		train_dataset, batch_size=batch_size, num_workers=2, shuffle=True, pin_memory=True
+		train_dataset, batch_size=batch_size, num_workers=0, shuffle=True, pin_memory=True
 	)
 	
 	dev_datasets, dev_dataloaders = [], []
 	for _item in ["IOS", "Android", "Recorder"]:
 		dev_datasets.append(data.MASRDataset(dev_index_path, labels_path, mode = "dev", config = config, device_type = _item))
-		dev_dataloaders.append(data.MASRDataLoader(dev_datasets[-1], batch_size=batch_size, num_workers=2, pin_memory=True))
+		dev_dataloaders.append(data.MASRDataLoader(dev_datasets[-1], batch_size=batch_size, num_workers=0, pin_memory=True))
 	
 	if config.optim == "sgd":
 		print("choose sgd.")
@@ -206,6 +206,7 @@ def eval(model, dataloader):
 			y_strings = decoder.convert_to_strings(ys)
 			for pred, truth in zip(out_strings, y_strings):
 				trans, ref = pred[0], truth[0]
+				#if len(ref) == 0 : print("ref:", ref, y_strings)
 				cer += decoder.cer(trans, ref) / float(len(ref))
 		cer /= len(dataloader.dataset)
 		epoch_loss /= i+1
