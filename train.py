@@ -52,13 +52,13 @@ def train(
 		train_dataset, batch_size=batch_size, num_workers=8
 	)
 	train_dataloader_shuffle = data.MASRDataLoader(
-		train_dataset, batch_size=batch_size, num_workers=8, shuffle=True
+		train_dataset, batch_size=batch_size, num_workers=8, shuffle=True, pin_memory=True
 	)
 	
 	dev_datasets, dev_dataloaders = [], []
 	for _item in ["IOS", "Android", "Recorder"]:
 		dev_datasets.append(data.MASRDataset(dev_index_path, labels_path, mode = "dev", config = config, device_type = _item))
-		dev_dataloaders.append(data.MASRDataLoader(dev_datasets[-1], batch_size=batch_size, num_workers=8))
+		dev_dataloaders.append(data.MASRDataLoader(dev_datasets[-1], batch_size=batch_size, num_workers=8, pin_memory=True))
 	
 	if config.optim == "sgd":
 		print("choose sgd.")
