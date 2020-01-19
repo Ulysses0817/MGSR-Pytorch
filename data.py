@@ -1,4 +1,4 @@
-import torch
+import torch, os, random
 import difflib, librosa
 import wave
 import numpy as np
@@ -142,10 +142,13 @@ class MASRDataset(Dataset):
 			wav_path =  "/kaggle/input/magicdata/test/test_byte(%s)/"%self.device_type + os.path.basename(x)
 		wav = load_audio(wav_path)
 		
-		if self.config.speed:
+		if self.config.speed and self.config.pitch:
+			wav = speed_tune(wav) if random.random() <= 0.75 else pitch_tune(wav)
+		elif self.config.speed:
 			wav = speed_tune(wav)
-		if self.config.pitch:
+		elif self.config.pitch:
 			wav = pitch_tune(wav)
+			
 		spect = spectrogram(wav, self.config.mel_spec)
 		if self.config.specaug:
 			spect = specaugment(spect)

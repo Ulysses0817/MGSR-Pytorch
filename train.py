@@ -81,7 +81,7 @@ def train(
 			scheduler = CyclicLRWithRestarts(optimizer, batch_size, epoch_size=len(train_dataloader.dataset), restart_period=5, t_mult=1.2, 
 										  eta_on_restart_cb=ReduceMaxLROnRestart(ratio=config.wr_ratio), policy="cosine")
 	
-	ctcloss = CTCLoss(size_average=True)
+	ctcloss = CTCLoss()#size_average=True
 	decoder = GreedyDecoder(train_dataloader.dataset.labels_str)
 	# lr_sched = torch.optim.lr_scheduler.ExponentialLR(optimizer, 0.985)
 	writer = tensorboard.SummaryWriter('./logs/')
@@ -100,7 +100,8 @@ def train(
 			x = x.to(device)
 			out, out_lens = model(x, x_lens)
 			outs = out.transpose(0, 1).transpose(0, 2)
-			loss = ctcloss(outs, y, out_lens, y_lens)
+			loss = ctcloss(outs, y, out_lens, y_lens).to(device)
+			loss = loss / x.size(0)
 			optimizer.zero_grad()
 			# 混合精度加速
 			if config.fp16 is not None:
@@ -109,9 +110,10 @@ def train(
 			else:
 				loss.backward()
 
-			if config.optim == "sgd": nn.utils.clip_grad_norm_(model.parameters(), max_grad_norm)
+			nn.utils.clip_grad_norm_(model.parameters(), max_grad_norm) #if config.optim == "sgd": 
 			optimizer.step()
 			if config.optim == "adamwr": scheduler.batch_step()
+			#loss_value = loss.item()
 			
 			# cer
 			outs = F.softmax(out, 1)
