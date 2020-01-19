@@ -12,6 +12,8 @@ import os, json, random
 from lr_scheduler.Adamw import AdamW
 from lr_scheduler.cyclic_scheduler import CyclicLRWithRestarts, ReduceMaxLROnRestart
 
+torch.multiprocessing.set_start_method('spawn')
+
 # 1. set random seed
 random.seed(2050)
 np.random.seed(2050)
@@ -49,16 +51,16 @@ def train(
 	train_dataset = data.MASRDataset(train_index_path, labels_path, config = config)
 	batchs = (len(train_dataset) + batch_size - 1) // batch_size
 	train_dataloader = data.MASRDataLoader(
-		train_dataset, batch_size=batch_size, num_workers=8
+		train_dataset, batch_size=batch_size, num_workers=2
 	)
 	train_dataloader_shuffle = data.MASRDataLoader(
-		train_dataset, batch_size=batch_size, num_workers=8, shuffle=True, pin_memory=True
+		train_dataset, batch_size=batch_size, num_workers=2, shuffle=True, pin_memory=True
 	)
 	
 	dev_datasets, dev_dataloaders = [], []
 	for _item in ["IOS", "Android", "Recorder"]:
 		dev_datasets.append(data.MASRDataset(dev_index_path, labels_path, mode = "dev", config = config, device_type = _item))
-		dev_dataloaders.append(data.MASRDataLoader(dev_datasets[-1], batch_size=batch_size, num_workers=8, pin_memory=True))
+		dev_dataloaders.append(data.MASRDataLoader(dev_datasets[-1], batch_size=batch_size, num_workers=2, pin_memory=True))
 	
 	if config.optim == "sgd":
 		print("choose sgd.")
@@ -141,6 +143,9 @@ def train(
 					),
 					flush=True
 				)
+				
+				if args.debug: break
+				
 		cer_tr /= len(train_dataloader.dataset)
 		epoch_loss = epoch_loss / batchs
 		
@@ -149,6 +154,9 @@ def train(
 			cer_dev, loss_dev = eval(model, dev_dataloader)
 			cer_devs.append(cer_dev)
 			loss_devs.append(loss_dev)
+			
+			if args.debug: break
+			
 		cer_dev = sum(cer_devs)/3
 		loss_dev  = sum(loss_devs)/3
 		
@@ -163,6 +171,8 @@ def train(
 			torch.save(model, "pretrained/model_bestCer_{}_{:.4f}_{}.pth".format(config.optim, epoch+cer_dev, time.strftime("%m%d%H%M", time.localtime())))
 			with open("{}_{:.4f}_{:.4f}_{:.4f}.info".format(epoch, epoch_loss, cer_tr, cer_dev), "w") as _fw:
 				_fw.write("")
+				
+		if args.debug: break
 
 def get_lr(optimizer):
 	for param_group in optimizer.param_groups:
@@ -237,6 +247,7 @@ if __name__ == "__main__":
 	parser.add_argument("-specaug","--specaug", default=True, type=ast.literal_eval,)
 	parser.add_argument("-mel","--mel_spec", default=True, type=ast.literal_eval,)
 	parser.add_argument("-ptp","--pretrained_path", default=None)
+	parser.add_argument("-debug","--debug", default=False, type=ast.literal_eval,)
 	
 	args = parser.parse_args()
 	

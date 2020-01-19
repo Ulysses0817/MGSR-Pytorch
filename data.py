@@ -138,9 +138,9 @@ class MASRDataset(Dataset):
 	def __getitem__(self, index):
 		wav_path, transcript = self.idx[index]
 		if self.mode == "dev" and self.device_type is not None:
-			wav_path =  "/kaggle/input/magicdata/dev_device/dev_byte(%s)/"%self.device_type + os.path.basename(x)
+			wav_path =  "/kaggle/input/magicdata/dev_device/dev_byte(%s)/"%self.device_type + os.path.basename(wav_path)
 		if self.mode == "test" and self.device_type is not None:
-			wav_path =  "/kaggle/input/magicdata/test/test_byte(%s)/"%self.device_type + os.path.basename(x)
+			wav_path =  "/kaggle/input/magicdata/test/test_byte(%s)/"%self.device_type + os.path.basename(wav_path)
 		wav = load_audio(wav_path)
 		
 		if self.config.speed and self.config.pitch:
@@ -152,7 +152,7 @@ class MASRDataset(Dataset):
 			
 		spect = spectrogram(wav, self.config.mel_spec)
 		if self.config.specaug:
-			spect = specaugment(spect)
+			spect = specaugment(spect.to(self.device))
 		
 		if self.mode in ["train", "dev"]:
 			transcript = list(filter(None, [self.labels.get(x) for x in transcript]))
