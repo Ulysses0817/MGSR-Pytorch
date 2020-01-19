@@ -12,7 +12,7 @@ import os, json, random
 from lr_scheduler.Adamw import AdamW
 from lr_scheduler.cyclic_scheduler import CyclicLRWithRestarts, ReduceMaxLROnRestart
 
-torch.multiprocessing.set_start_method('spawn')
+torch.multiprocessing.set_start_method('spawn', force=True)
 
 # 1. set random seed
 random.seed(2050)
@@ -253,6 +253,8 @@ if __name__ == "__main__":
 	
 	if args.fp16 is not None:
 		from apex import amp
+	
+	
 	
 	with open(args.labels_path) as f:
 		vocabulary = json.load(f)
