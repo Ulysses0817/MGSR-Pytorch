@@ -152,7 +152,7 @@ class MASRDataset(Dataset):
 			
 		spect = spectrogram(wav, self.config.mel_spec)
 		if self.config.specaug:
-			spect = specaugment(spect.to(self.device))
+			spect = specaugment(spect)
 		
 		if self.mode in ["train", "dev"]:
 			transcript = list(filter(None, [self.labels.get(x) for x in transcript]))
