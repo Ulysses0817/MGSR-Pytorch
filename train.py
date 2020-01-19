@@ -155,7 +155,10 @@ def train(
 			cer_devs.append(cer_dev)
 			loss_devs.append(loss_dev)
 			
-			if args.debug: break
+			if args.debug: 
+				cer_devs.extend([0, 0])
+				loss_devs.extend([0, 0])
+				break
 			
 		cer_dev = sum(cer_devs)/3
 		loss_dev  = sum(loss_devs)/3
