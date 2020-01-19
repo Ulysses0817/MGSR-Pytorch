@@ -120,6 +120,7 @@ class MASRDataset(Dataset):
 		self.mode = mode
 		self.config = config
 		self.device_type = device_type
+		self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 		
 		if ".json" not in index_path:
 			with open(index_path) as f:
@@ -151,7 +152,7 @@ class MASRDataset(Dataset):
 			
 		spect = spectrogram(wav, self.config.mel_spec)
 		if self.config.specaug:
-			spect = specaugment(spect)
+			spect = specaugment(spect.to(self.device))
 		
 		if self.mode in ["train", "dev"]:
 			transcript = list(filter(None, [self.labels.get(x) for x in transcript]))
