@@ -52,10 +52,10 @@ def specaugment(spec, W=60, F=27, T=70, num_freq_masks=2, num_time_masks=2, p=0.
 	
 	if random.random() <= 0.1 and spec.size(1) > 2*W:
 		spec = time_warp(spec, W=W)
+	#if random.random() <= 0.65:
+	#	spec = freq_mask(spec, F=F, num_masks=num_freq_masks, pad_value=pad_value)
 	if random.random() <= 0.65:
-		spec = freq_mask(spec, F=F, num_masks=num_freq_masks, pad_value=pad_value)
-	if random.random() <= 0.65:
-		spec = time_mask(spec, T=T, num_masks=num_time_masks, p=p, pad_value=pad_value)
+		spec = time_mask(freq_mask(spec, F=F, num_masks=num_freq_masks, pad_value=pad_value), T=T, num_masks=num_time_masks, p=p, pad_value=pad_value)
 		
 	return spec
 	
