@@ -155,7 +155,7 @@ class MASRDataset(Dataset):
 			spect = specaugment(spect.to(self.device))
 		
 		if self.mode in ["train", "dev"]:
-			transcript = list(filter(None, [self.labels.get(x) for x in transcript]))
+			transcript = list(filter(None, [self.labels.get(x, 0) for x in transcript]))
 		elif self.mode == "test":
 			transcript = wav_path
 		return spect, transcript
