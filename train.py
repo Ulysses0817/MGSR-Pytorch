@@ -88,6 +88,7 @@ def train(
 	# lr_sched = torch.optim.lr_scheduler.ExponentialLR(optimizer, 0.985)
 	writer = tensorboard.SummaryWriter('./logs/')
 	gstep = 0
+	start_epoch = 0
 	best_cer = 1
 	
 	# optionally resume from a checkpoint
@@ -101,6 +102,7 @@ def train(
 			model.load_state_dict(checkpoint['state_dict'])
 			optimizer.load_state_dict(checkpoint['optimizer'])
 			gstep = checkpoint['gstep']
+			best_cer = checkpoint['best_cer']
 			print("=> loaded checkpoint '{}' (epoch {})" .format(resume, start_epoch))
 		else:
 			print("=> no checkpoint found at '{}'".format(resume))
@@ -173,10 +175,10 @@ def train(
 			cer_devs.append(cer_dev)
 			loss_devs.append(loss_dev)
 			
-			# if args.debug: 
-				# cer_devs.extend([0, 0])
-				# loss_devs.extend([0, 0])
-				# break
+			if args.debug: 
+				cer_devs.extend([0, 0])
+				loss_devs.extend([0, 0])
+				break
 			
 		cer_dev = sum(cer_devs)/3
 		loss_dev  = sum(loss_devs)/3
@@ -197,6 +199,7 @@ def train(
 			  'optimizer' : optimizer.state_dict(),
 			  'scheduler': scheduler.state_dict(),
 			  'gstep': gstep,
+			  'best_cer': best_cer,
 			}, save_path)
 			# torch.save(model, )
 			with open("{}_{:.4f}_{:.4f}_{:.4f}.info".format(epoch, epoch_loss, cer_tr, cer_dev), "w") as _fw:
