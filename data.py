@@ -120,7 +120,7 @@ class MASRDataset(Dataset):
 		self.mode = mode
 		self.config = config
 		self.device_type = device_type
-		self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+#		self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 		
 		if ".json" not in index_path:
 			with open(index_path) as f:
