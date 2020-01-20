@@ -97,10 +97,10 @@ def train(
 		if os.path.isfile(resume):
 			print_log("=> loading checkpoint '{}'".format(resume))
 			checkpoint = torch.load(resume, map_location="cpu")
-			start_epoch = checkpoint['epoch']
-			scheduler.load_state_dict(checkpoint['scheduler'])
+			start_epoch = checkpoint['epoch']			
 			model.load_state_dict(checkpoint['state_dict'])
 			optimizer.load_state_dict(checkpoint['optimizer'])
+			scheduler.load_state_dict(checkpoint['scheduler'])
 			gstep = checkpoint['gstep']
 			best_cer = checkpoint['best_cer']
 			print("=> loaded checkpoint '{}' (epoch {})" .format(resume, start_epoch))
@@ -255,7 +255,7 @@ def load_pretrained(model, pretrained_path):
 		pretrained_dict = package.state_dict()
 		package_output_units = len(package.vocabulary)
 	if package_output_units != model.output_units:
-		pretrained_dict = {k: v for k, v in pretrained_dict.items() if ("cnn.10" not in k) and ("cnn.0" not in k)}
+		pretrained_dict = {k: v for k, v in pretrained_dict.items() if ("cnn.10" not in k)}
 		print(pretrained_dict.keys())
 	model_dict = model.state_dict()
 	model_dict.update(pretrained_dict)
