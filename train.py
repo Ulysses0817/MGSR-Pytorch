@@ -107,7 +107,7 @@ def train(
 		else:
 			print("=> no checkpoint found at '{}'".format(resume))
 	else:
-		print("=> did not use any checkpoint for {} model".format(arch))
+		print("=> did not use any checkpoint")
 	
 	for epoch in range(start_epoch, epochs):
 		epoch_loss = 0
