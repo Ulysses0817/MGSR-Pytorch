@@ -12,7 +12,7 @@ from augmentor.libaug import speed_tune, pitch_tune, specaugment
 sample_rate = 16000
 window_size = 0.02
 window_stride = 0.01
-n_mels = 80
+n_mels = 161
 n_fft = int(sample_rate * window_size)
 win_length = n_fft
 hop_length = int(sample_rate * window_stride)
