@@ -89,7 +89,25 @@ def train(
 	writer = tensorboard.SummaryWriter('./logs/')
 	gstep = 0
 	best_cer = 1
-	for epoch in range(epochs):
+	
+	# optionally resume from a checkpoint
+	resume = args.resume
+	if resume is not None:
+		if os.path.isfile(resume):
+			print_log("=> loading checkpoint '{}'".format(resume))
+			checkpoint = torch.load(resume, map_location="cpu")
+			start_epoch = checkpoint['epoch']
+			scheduler.load_state_dict(checkpoint['scheduler'])
+			model.load_state_dict(checkpoint['state_dict'])
+			optimizer.load_state_dict(checkpoint['optimizer'])
+			gstep = checkpoint['gstep']
+			print("=> loaded checkpoint '{}' (epoch {})" .format(resume, start_epoch))
+		else:
+			print("=> no checkpoint found at '{}'".format(resume))
+	else:
+		print("=> did not use any checkpoint for {} model".format(arch))
+	
+	for epoch in range(start_epoch, epochs):
 		epoch_loss = 0
 		cer_tr = 0
 		if epoch > 0:
@@ -165,13 +183,22 @@ def train(
 		
 		writer.add_scalar("loss/epoch", epoch_loss, epoch)
 		# writer.add_scalar("loss_dev/epoch", loss_dev, epoch)
-		writer.add_scalars("loss_dev/epoch", {"loss_dev":loss_dev, "loss_ios":loss_devs[0], "loss_recorder":loss_devs[2], "loss_android":loss_devs[1]}, epoch)
+		writer.add_scalars("loss_dev", {"loss_dev":loss_dev, "loss_ios":loss_devs[0], "loss_recorder":loss_devs[2], "loss_android":loss_devs[1]}, epoch)
 		writer.add_scalar("cer_tr/epoch", cer_tr, epoch)
-		writer.add_scalars("cer_dev/epoch", {"cer_dev":cer_dev, "cer_ios":cer_devs[0], "cer_recorder":cer_devs[2], "cer_android":cer_devs[1]}, epoch)
+		writer.add_scalars("cer_dev", {"cer_dev":cer_dev, "cer_ios":cer_devs[0], "cer_recorder":cer_devs[2], "cer_android":cer_devs[1]}, epoch)
 		print("Epoch {}: Loss= {:.4f}, Loss_dev= {:.4f}, CER_tr = {:.4f}, CER_dev = {:.4f}".format(epoch, epoch_loss, loss_dev, cer_tr, cer_dev))
 		if cer_dev <= best_cer:
 			best_cer = cer_dev
-			torch.save(model, "pretrained/model_bestCer_{}_{:.4f}_{}.pth".format(config.optim, epoch+cer_dev, time.strftime("%m%d%H%M", time.localtime())))
+			save_path = "pretrained/model_bestCer_{}_{:.4f}_{}.pth".format(config.optim, epoch+cer_dev, time.strftime("%m%d%H%M", time.localtime()))
+			save_checkpoint({
+			  'epoch': epoch + 1,
+			  'state_dict': model.state_dict(),
+			  'config': {"vocabulary": model.vocabulary},
+			  'optimizer' : optimizer.state_dict(),
+			  'scheduler': scheduler.state_dict(),
+			  'gstep': gstep,
+			}, save_path)
+			# torch.save(model, )
 			with open("{}_{:.4f}_{:.4f}_{:.4f}.info".format(epoch, epoch_loss, cer_tr, cer_dev), "w") as _fw:
 				_fw.write("")
 				
@@ -213,6 +240,9 @@ def eval(model, dataloader):
 	model.train()
 	return cer, epoch_loss
 	
+def save_checkpoint(state, save_path):
+	torch.save(state, save_path)
+	
 def load_pretrained(model, pretrained_path):
 	package = torch.load(pretrained_path, map_location="cpu")
 	try:
@@ -252,13 +282,12 @@ if __name__ == "__main__":
 	parser.add_argument("-mel","--mel_spec", default=True, type=ast.literal_eval,)
 	parser.add_argument("-ptp","--pretrained_path", default=None)
 	parser.add_argument("-debug","--debug", default=False, type=ast.literal_eval,)
+	parser.add_argument("-resume","--resume", default=None)
 	
 	args = parser.parse_args()
 	
 	if args.fp16 is not None:
-		from apex import amp
-	
-	
+		from apex import amp	
 	
 	with open(args.labels_path) as f:
 		vocabulary = json.load(f)
