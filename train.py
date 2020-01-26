@@ -90,7 +90,7 @@ def train(
 	ctcloss = CTCLoss()#size_average=True
 	decoder = GreedyDecoder(train_dataloader.dataset.labels_str)
 	# lr_sched = torch.optim.lr_scheduler.ExponentialLR(optimizer, 0.985)
-	writer = tensorboard.SummaryWriter('./logs/')
+	writer = tensorboard.SummaryWriter('./logs-O2/')
 	gstep = 0
 	start_epoch = 0
 	best_cer = 1
