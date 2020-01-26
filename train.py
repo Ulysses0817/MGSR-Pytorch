@@ -12,6 +12,10 @@ import os, json, random
 from lr_scheduler.Adamw import AdamW
 from lr_scheduler.cyclic_scheduler import CyclicLRWithRestarts, ReduceMaxLROnRestart
 
+from multiprocessing import cpu_count
+cpu_num = cpu_count()
+print("CPU的核数为：{}".format(cpu_count()))
+
 #torch.multiprocessing.set_start_method('spawn', force=True)
 
 # 1. set random seed
@@ -51,16 +55,16 @@ def train(
 	train_dataset = data.MASRDataset(train_index_path, labels_path, config = config)
 	batchs = (len(train_dataset) + batch_size - 1) // batch_size
 	train_dataloader = data.MASRDataLoader(
-		train_dataset, batch_size=batch_size, num_workers=4
+		train_dataset, batch_size=batch_size, num_workers=cpu_num
 	)
 	train_dataloader_shuffle = data.MASRDataLoader(
-		train_dataset, batch_size=batch_size, num_workers=4, shuffle=True, pin_memory=True
+		train_dataset, batch_size=batch_size, num_workers=cpu_num, shuffle=True, pin_memory=True
 	)
 	
 	dev_datasets, dev_dataloaders = [], []
 	for _item in ["IOS", "Android", "Recorder"]:
 		dev_datasets.append(data.MASRDataset(dev_index_path, labels_path, mode = "dev", config = config, device_type = _item))
-		dev_dataloaders.append(data.MASRDataLoader(dev_datasets[-1], batch_size=batch_size, num_workers=4, pin_memory=True))
+		dev_dataloaders.append(data.MASRDataLoader(dev_datasets[-1], batch_size=batch_size, num_workers=cpu_num, pin_memory=True))
 	
 	if config.optim == "sgd":
 		print("choose sgd.")
@@ -188,7 +192,7 @@ def train(
 		writer.add_scalars("loss_dev", {"loss_dev":loss_dev, "loss_ios":loss_devs[0], "loss_recorder":loss_devs[2], "loss_android":loss_devs[1]}, epoch)
 		writer.add_scalar("cer_tr/epoch", cer_tr, epoch)
 		writer.add_scalars("cer_dev", {"cer_dev":cer_dev, "cer_ios":cer_devs[0], "cer_recorder":cer_devs[2], "cer_android":cer_devs[1]}, epoch)
-		print("Epoch {}: Loss= {:.4f}, Loss_dev= {:.4f}, CER_tr = {:.4f}, CER_dev = {:.4f}".format(epoch, epoch_loss, loss_dev, cer_tr, cer_dev))
+		print("Epoch {}: Loss= {:.4f}, Loss_dev= {:.4f}, CER_tr = {:.4f}, CER_dev = {:.4f}, CER_ios = {:.4f}".format(epoch, epoch_loss, loss_dev, cer_tr, cer_dev, cer_devs[0]))
 		if cer_dev <= best_cer:
 			best_cer = cer_dev
 			save_path = "pretrained/model_bestCer_{}_{:.4f}_{}.pth".format(config.optim, epoch+cer_dev, time.strftime("%m%d%H%M", time.localtime()))
@@ -250,15 +254,27 @@ def load_pretrained(model, pretrained_path):
 	package = torch.load(pretrained_path, map_location="cpu")
 	try:
 		pretrained_dict = package["state_dict"]
-		package_output_units = len(package["config"]["vocabulary"])
+		vocab = package["config"]["vocabulary"]
+		package_output_units = len(vocab)
 	except:
 		pretrained_dict = package.state_dict()
-		package_output_units = len(package.vocabulary)
+		vocab = package.vocabulary
+		package_output_units = len(vocab)
 	if package_output_units != model.output_units:
-		pretrained_dict = {k: v for k, v in pretrained_dict.items() if ("cnn.10" not in k)}
-		print(pretrained_dict.keys())
+		new_pretrained_dict = {k: v for k, v in pretrained_dict.items() if ("cnn.10" not in k)}
+		print(new_pretrained_dict.keys())
 	model_dict = model.state_dict()
-	model_dict.update(pretrained_dict)
+	model_dict.update(new_pretrained_dict)
+	
+	# with open("./dataset/labels_noen.json", "r") as f:
+		# idx = json.load(f)
+		
+	# for i, _c in enumerate(idx):
+		# if _c in vocab:
+			# model_dict["cnn.10.bias"][i] = pretrained_dict["cnn.10.bias"][vocab.index(_c)]
+			# model_dict["cnn.10.weight_g"][i] = pretrained_dict["cnn.10.weight_g"][vocab.index(_c)]
+			# model_dict["cnn.10.weight_v"][i] = pretrained_dict["cnn.10.weight_v"][vocab.index(_c)]
+			
 	model.load_state_dict(model_dict)
 	return model
 	

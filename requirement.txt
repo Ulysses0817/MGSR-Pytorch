@@ -1,0 +1,5 @@
+librosa
+python-Levenshtein
+tensorboardX
+swifter
+gpustat

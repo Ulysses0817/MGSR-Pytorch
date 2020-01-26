@@ -5,6 +5,10 @@ from models.conv import GatedConv
 import torch.nn.functional as F
 from ctcdecode import CTCBeamDecoder
 
+from multiprocessing import cpu_count
+cpu_num = cpu_count()
+print("CPU的核数为：{}".format(cpu_count()))
+
 def model_setup(pretrained_path = "pretrained/gated-conv.pth",
 				alpha = 0.8,
 				beta = 0.3,
@@ -15,7 +19,7 @@ def model_setup(pretrained_path = "pretrained/gated-conv.pth",
 				num_processes = 4,
 				blank_index = 0,
 				vocabulary = None):
-	
+	num_processes = cpu_num
 	model = GatedConv.load(pretrained_path)
 	model.eval()
 	

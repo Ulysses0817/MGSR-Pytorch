@@ -1,4 +1,7 @@
-import torch, os, random
+#-*- coding: UTF-8 -*- 
+import torch
+import os
+import random
 import difflib, librosa
 import wave
 import numpy as np
@@ -36,6 +39,54 @@ def load_audio(wav_path, normalize=True):  # -> numpy array
 		return wav
 
 
+def magphase(D):
+    """Separate a complex-valued spectrogram D into its magnitude (S)
+    and phase (P) components, so that `D = S * P`.
+    Parameters
+    ----------
+    D       : np.ndarray [shape=(d, t), dtype=complex]
+        complex-valued spectrogram
+    Returns
+    -------
+    D_mag   : np.ndarray [shape=(d, t), dtype=real]
+        magnitude of `D`
+    D_phase : np.ndarray [shape=(d, t), dtype=complex]
+        `exp(1.j * phi)` where `phi` is the phase of `D`
+    Examples
+    --------
+    >>> y, sr = librosa.load(librosa.util.example_audio_file())
+    >>> D = librosa.stft(y)
+    >>> magnitude, phase = librosa.magphase(D)
+    >>> magnitude
+    array([[  2.524e-03,   4.329e-02, ...,   3.217e-04,   3.520e-05],
+           [  2.645e-03,   5.152e-02, ...,   3.283e-04,   3.432e-04],
+           ...,
+           [  1.966e-05,   9.828e-06, ...,   3.164e-07,   9.370e-06],
+           [  1.966e-05,   9.830e-06, ...,   3.161e-07,   9.366e-06]], dtype=float32)
+    >>> phase
+    array([[  1.000e+00 +0.000e+00j,   1.000e+00 +0.000e+00j, ...,
+             -1.000e+00 +8.742e-08j,  -1.000e+00 +8.742e-08j],
+           [  1.000e+00 +1.615e-16j,   9.950e-01 -1.001e-01j, ...,
+              9.794e-01 +2.017e-01j,   1.492e-02 -9.999e-01j],
+           ...,
+           [  1.000e+00 -5.609e-15j,  -5.081e-04 +1.000e+00j, ...,
+             -9.549e-01 -2.970e-01j,   2.938e-01 -9.559e-01j],
+           [ -1.000e+00 +8.742e-08j,  -1.000e+00 +8.742e-08j, ...,
+             -1.000e+00 +8.742e-08j,  -1.000e+00 +8.742e-08j]], dtype=complex64)
+    Or get the phase angle (in radians)
+    >>> np.angle(phase)
+    array([[  0.000e+00,   0.000e+00, ...,   3.142e+00,   3.142e+00],
+           [  1.615e-16,  -1.003e-01, ...,   2.031e-01,  -1.556e+00],
+           ...,
+           [ -5.609e-15,   1.571e+00, ...,  -2.840e+00,  -1.273e+00],
+           [  3.142e+00,   3.142e+00, ...,   3.142e+00,   3.142e+00]], dtype=float32)
+    """
+ 
+    mag = np.abs(D)
+    phase = np.exp(1.j * np.angle(D))
+ 
+    return mag, phase
+
 def spectrogram(wav, mel_spec=False ,normalize=True):
 # librosa
 	if not mel_spec:
@@ -43,7 +94,7 @@ def spectrogram(wav, mel_spec=False ,normalize=True):
 			wav, n_fft=n_fft, hop_length=hop_length, win_length=win_length, window=window
 		)
 
-		spec, phase = librosa.magphase(D)
+		spec, phase = magphase(D)
 		spec = np.log1p(spec)
 	else:
 		spec = librosa.feature.melspectrogram(wav,
@@ -138,21 +189,23 @@ class MASRDataset(Dataset):
 	def __getitem__(self, index):
 		wav_path, transcript = self.idx[index]
 		if self.mode == "dev" and self.device_type is not None:
-			wav_path =  "/kaggle/input/magicdata/dev_device/dev_byte(%s)/"%self.device_type + os.path.basename(wav_path)
+			wav_path =  "/kaggle/input/magicdata/dev_device/dev_byte(%s)/"%self.device_type + os.path.basename(wav_path)#/root
 		if self.mode == "test" and self.device_type is not None:
 			wav_path =  "/kaggle/input/magicdata/test/test_byte(%s)/"%self.device_type + os.path.basename(wav_path)
 		wav = load_audio(wav_path)
 		
-		if self.config.speed and self.config.pitch:
-			wav = speed_tune(wav) if random.random() <= 0.75 else pitch_tune(wav)
-		elif self.config.speed:
-			wav = speed_tune(wav)
-		elif self.config.pitch:
-			wav = pitch_tune(wav)
+		if self.mode == "train":
+			if self.config.speed and self.config.pitch:
+				wav = speed_tune(wav, prob = 0.33) if random.random() <= 0.75 else pitch_tune(wav, prob = 0.33)
+			elif self.config.speed:
+				wav = speed_tune(wav)
+			elif self.config.pitch:
+				wav = pitch_tune(wav)
 			
 		spect = spectrogram(wav, self.config.mel_spec)
-		if self.config.specaug:
-			spect = specaugment(spect)
+		if self.mode == "train":
+			if self.config.specaug:
+				spect = specaugment(spect)
 		
 		if self.mode in ["train", "dev"]:
 			transcript = list(filter(None, [self.labels.get(x, 0) for x in transcript]))
